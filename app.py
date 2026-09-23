@@ -10,12 +10,13 @@ from datetime import datetime, timezone
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field, ConfigDict
+from pricing import BASE, VEHICLES, BRANDS, ALIASES, quote, catalog
 
 ROOT = Path(__file__).parent
 SHOP = {
     'name': 'Desert Shine Auto Detailing',
     'hours': 'Monday–Saturday 9 AM–5 PM; Sunday closed (America/Phoenix)',
-    'services': {'interior': 149, 'exterior': 89, 'full': 219},
+    'services': BASE,
     'currency': 'USD',
 }
 
@@ -62,7 +63,11 @@ def create_app(db_path=None):
 
     @app.get('/shop')
     def shop():
-        return SHOP
+        return {**SHOP, 'pricing': catalog()}
+
+    @app.get('/pricing')
+    def pricing():
+        return catalog()
 
     @app.post('/leads')
     def lead(body: LeadInput):
@@ -88,23 +93,39 @@ def create_app(db_path=None):
                 if re.search(r'\b' + day + r'\b', msg):
                     profile['day'] = day
                     break
-            vehicle = re.search(r'\b(sedan|suv|truck|coupe|van|hatchback)\b', msg)
+            vehicle = re.search(r'\b(' + '|'.join(VEHICLES) + r')\b', msg)
             if vehicle:
                 profile['vehicle'] = vehicle.group(1)
+            brand_names = {**{b.lower(): b for b in BRANDS}, **ALIASES}
+            for name in sorted(brand_names, key=len, reverse=True):
+                if re.search(r'\b' + re.escape(name) + r'\b', msg):
+                    profile['brand'] = brand_names[name]
+                    break
+            if re.search(r'\b(other brand|unlisted brand|unknown brand)\b', msg):
+                profile['brand'] = 'Other'
             if 'weekend' in msg:
                 profile['weekend_requested'] = True
-            missing = [key for key in ('service', 'vehicle', 'day') if key not in profile]
-            qualified = not missing and profile.get('day') != 'sunday'
+            missing = [key for key in ('service', 'vehicle', 'brand', 'day') if key not in profile]
+            price = quote(profile)
+            profile['quote'] = price
+            qualified = not missing and profile.get('day') != 'sunday' and price is not None
             url = f'/book/{cid}'
             parts = []
             if profile.get('service'):
                 service = profile['service']
-                parts.append(f"Our {service} detail is ${SHOP['services'][service]} flat.")
+                if price:
+                    parts.append(f"Your {profile['brand']} {profile['vehicle']} {service} detail is ${price['total_usd']} (base ${price['base_usd']} + vehicle ${price['vehicle_adjustment_usd']} + brand ${price['brand_adjustment_usd']}). Fictional demo price, including tax.")
+                else:
+                    parts.append(f"Our {service} detail starts at ${BASE[service]}; your vehicle type and brand determine the demo quote.")
             else:
-                parts.append('We offer interior ($149), exterior ($89), and full detailing ($219). Which service would you like?')
+                parts.append('Demo prices start at: interior $149, exterior $89, full $219. Which service would you like?')
             parts.append(SHOP['hours'] + '.')
             if 'vehicle' in missing:
-                parts.append('What type of vehicle do you have: sedan, SUV, truck, coupe, van, or hatchback?')
+                parts.append('What type of vehicle do you have: ' + ', '.join(VEHICLES) + '?')
+            if 'brand' in missing:
+                parts.append('What brand is your car? For example Toyota, Honda, BMW, Tesla, or Porsche. See the pricing explorer for all supported brands; use "other brand" if unlisted.')
+            elif profile['brand'] not in BRANDS:
+                parts.append('Your brand needs a manual quote. Automated test booking is unavailable for unlisted brands.')
             if profile.get('day') == 'sunday':
                 parts.append('We are closed Sunday. Would Saturday or a weekday work?')
             elif 'day' in missing:
@@ -125,7 +146,9 @@ def create_app(db_path=None):
             row = require(db, cid)
             messages = [dict(r) for r in db.execute('SELECT role,content,created_at FROM messages WHERE conversation_id=? ORDER BY id', (cid,))]
             booking = db.execute('SELECT * FROM bookings WHERE conversation_id=?', (cid,)).fetchone()
-        return {'id': cid, 'profile': json.loads(row['profile']), 'messages': messages,
+        profile = json.loads(row['profile'])
+        profile['quote'] = quote(profile)
+        return {'id': cid, 'profile': profile, 'messages': messages,
                 'booking': dict(booking) if booking else None}
 
     @app.get('/book/{cid}')
@@ -142,10 +165,12 @@ def create_app(db_path=None):
             prior = db.execute('SELECT * FROM bookings WHERE conversation_id=?', (cid,)).fetchone()
             if prior:
                 return {'booking_id': prior['id'], 'status': 'test_booking_saved', 'simulated': True}
-            if not all(profile.get(k) for k in ('service', 'vehicle', 'day')) or profile['day'] == 'sunday':
-                raise HTTPException(409, 'Finish qualification in the conversation before booking: service, vehicle type, and an open day.')
+            price = quote(profile)
+            if not price or not profile.get('day') or profile['day'] == 'sunday':
+                raise HTTPException(409, 'Finish qualification before booking: service, vehicle type, supported brand, and an open day.')
             bid = str(uuid4())
-            profile['price_usd'] = SHOP['services'][profile['service']]
+            profile['quote'] = price
+            profile['price_usd'] = price['total_usd']
             db.execute('INSERT INTO bookings VALUES (?,?,?,?,?)',
                        (bid, cid, body.name, json.dumps(profile), datetime.now(timezone.utc).isoformat()))
         return {'booking_id': bid, 'status': 'test_booking_saved', 'simulated': True}
