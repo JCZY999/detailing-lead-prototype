@@ -1,0 +1,15 @@
+# Demo hosting only: SQLite records are lost on restarts/redeploys or idle spin-down.
+# Use fictional data. Durable bookings need a persistent disk or external database.
+services:
+  - type: web
+    name: detailing-lead-prototype
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements-lock.txt
+    startCommand: uvicorn app:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /shop
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.8
+      - key: DATABASE_PATH
+        value: /tmp/detailing-leads.sqlite3
