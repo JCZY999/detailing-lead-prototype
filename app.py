@@ -7,7 +7,7 @@ from pathlib import Path
 from uuid import uuid4
 from datetime import datetime, timezone
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, ConfigDict
@@ -23,11 +23,13 @@ SHOP = {
     'currency': 'USD',
 }
 
+
 class VehicleSelection(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True, extra='forbid')
     brand: str = Field(min_length=1, max_length=80)
     vehicle: str = Field(min_length=1, max_length=40)
     model: str | None = Field(default=None, max_length=80)
+
 
 class LeadInput(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True, extra='forbid')
@@ -35,9 +37,11 @@ class LeadInput(BaseModel):
     conversation_id: str | None = Field(default=None, max_length=64)
     selected_vehicle: VehicleSelection | None = None
 
+
 class BookingInput(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True, extra='forbid')
     name: str = Field(min_length=1, max_length=100)
+
 
 def create_app(db_path=None, conversation_ai=None):
     app = FastAPI(title='Desert Shine · Lead prototype')
@@ -47,6 +51,7 @@ def create_app(db_path=None, conversation_ai=None):
     def uses_llm():
         mode = os.getenv('LLM_MODE', 'auto')
         return mode == 'openai' or (mode != 'simulator' and (conversation_ai is not None or bool(os.getenv('OPENAI_API_KEY'))))
+
     database = Path(db_path or os.environ.get('DATABASE_PATH', ROOT / 'data' / 'leads.sqlite3'))
     database.parent.mkdir(parents=True, exist_ok=True)
 
@@ -77,13 +82,23 @@ def create_app(db_path=None, conversation_ai=None):
     def home():
         return FileResponse(ROOT / 'index.html')
 
+    @app.get('/services')
+    def services_page():
+        return FileResponse(ROOT / 'services.html')
+
+    @app.get('/pricing')
+    def pricing_page(request: Request):
+        if 'application/json' in request.headers.get('accept', '').lower():
+            return catalog()
+        return FileResponse(ROOT / 'pricing.html')
+
+    @app.get('/api/pricing')
+    def api_pricing():
+        return catalog()
+
     @app.get('/shop')
     def shop():
         return {**SHOP, 'pricing': catalog()}
-
-    @app.get('/pricing')
-    def pricing():
-        return catalog()
 
     @app.get('/status')
     def status():
@@ -104,7 +119,6 @@ def create_app(db_path=None, conversation_ai=None):
                                                body.selected_vehicle.model_dump() if body.selected_vehicle else None)
         except LLMUnavailable as exc:
             raise HTTPException(503, str(exc)) from None
-        # No database write lock is held during the external model request.
         response, qualified = render_reply(profile, introduction, SHOP, f'/book/{cid}')
         now = datetime.now(timezone.utc).isoformat()
         with connect() as db:
@@ -148,7 +162,6 @@ def create_app(db_path=None, conversation_ai=None):
                     profile['model'] = selection.model
                     profile['vehicle'] = MODELS[selection.brand][selection.model]
             previous_brand = profile.get('brand')
-            # Deliberately small, deterministic simulator; this is not an LLM.
             if re.search(r'\b(full|both)\b', msg):
                 profile['service'] = 'full'
             else:
@@ -172,8 +185,6 @@ def create_app(db_path=None, conversation_ai=None):
                 profile['brand'] = 'Other'
             if profile.get('brand') != previous_brand:
                 profile.pop('model', None)
-            # Match model names only within the selected/known brand. Longer names
-            # take priority; numeric model names require that brand in the message.
             for model, kind in sorted(MODELS.get(profile.get('brand'), {}).items(), key=lambda item: len(item[0]), reverse=True):
                 if model.isdigit() and not re.search(r'\b' + re.escape(profile['brand']) + r'\b', body.message, re.I):
                     continue
@@ -181,7 +192,6 @@ def create_app(db_path=None, conversation_ai=None):
                     profile.update(model=model, vehicle=kind)
                     break
             if vehicle and profile.get('model') and MODELS[profile['brand']][profile['model']] != vehicle.group(1):
-                # An explicit different body type invalidates an earlier model.
                 profile.pop('model', None)
                 profile['vehicle'] = vehicle.group(1)
             if 'weekend' in msg:
@@ -196,7 +206,7 @@ def create_app(db_path=None, conversation_ai=None):
                 service = profile['service']
                 if price:
                     car = ' '.join(filter(None, (profile['brand'], profile.get('model'), profile['vehicle'])))
-                    parts.append(f"Your {car} {service} detail is ${price['total_usd']} (base ${price['base_usd']} + vehicle ${price['vehicle_adjustment_usd']} + brand ${price['brand_adjustment_usd']}). Fictional demo price, including tax.")
+                    parts.append(f"Your {car} {service} detail is ${price['total_usd']} (base ${price['base_usd']} + vehicle ${price['vehicle_adjustment_usd']} + brand ${price['brand_adjustment_usd']}).")
                 else:
                     parts.append(f"Our {service} detail starts at ${BASE[service]}; your vehicle type and brand determine the demo quote.")
             else:
@@ -258,5 +268,6 @@ def create_app(db_path=None, conversation_ai=None):
         return {'booking_id': bid, 'status': 'test_booking_saved', 'simulated': True}
 
     return app
+
 
 app = create_app()
