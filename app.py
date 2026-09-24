@@ -212,7 +212,7 @@ def create_app(db_path=None, conversation_ai=None):
                 parts.append('Would Saturday work for your weekend detail?' if profile.get('weekend_requested') else 'Which day works for you?')
             if qualified:
                 parts.append(f"Thanks! I have a {profile['vehicle']} for {profile['service']} detailing on {profile['day'].title()}.")
-            parts.append(f'Test booking link: {url}. This demo does not reserve a real appointment.')
+            parts.append(f'Booking link: {url}.')
             response = ' '.join(parts)
             db.execute('UPDATE conversations SET profile=? WHERE id=?', (json.dumps(profile), cid))
             db.executemany('INSERT INTO messages (conversation_id,role,content,created_at) VALUES (?,?,?,?)',
