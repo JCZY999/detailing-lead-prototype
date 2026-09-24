@@ -1,4 +1,4 @@
-"""Local simulated lead-to-booking prototype. No live messaging or AI calls."""
+"""Lead-to-booking demo with optional server-side OpenAI conversation support."""
 import json
 import os
 import re
@@ -12,6 +12,7 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field, ConfigDict
 from pricing import BASE, VEHICLES, BRANDS, ALIASES, quote, catalog
 from car_models import MODELS
+from llm import OpenAIConversation, LLMUnavailable, render_reply
 
 ROOT = Path(__file__).parent
 SHOP = {
@@ -37,8 +38,13 @@ class BookingInput(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True, extra='forbid')
     name: str = Field(min_length=1, max_length=100)
 
-def create_app(db_path=None):
+def create_app(db_path=None, conversation_ai=None):
     app = FastAPI(title='Desert Shine · Lead prototype')
+    ai = conversation_ai or OpenAIConversation()
+
+    def uses_llm():
+        mode = os.getenv('LLM_MODE', 'auto')
+        return mode == 'openai' or (mode != 'simulator' and (conversation_ai is not None or bool(os.getenv('OPENAI_API_KEY'))))
     database = Path(db_path or os.environ.get('DATABASE_PATH', ROOT / 'data' / 'leads.sqlite3'))
     database.parent.mkdir(parents=True, exist_ok=True)
 
@@ -77,6 +83,42 @@ def create_app(db_path=None):
     def pricing():
         return catalog()
 
+    @app.get('/status')
+    def status():
+        return {'mode': 'openai' if uses_llm() else 'simulator',
+                'configured': bool(os.getenv('OPENAI_API_KEY')),
+                'model': ai.model if uses_llm() else None}
+
+    def llm_lead(body):
+        cid = body.conversation_id or str(uuid4())
+        with connect() as db:
+            profile = json.loads(require(db, cid)['profile']) if body.conversation_id else {}
+            history = [dict(row) for row in db.execute(
+                'SELECT role,content FROM messages WHERE conversation_id=? ORDER BY id', (cid,))]
+        if len(history) >= 40:
+            raise HTTPException(429, 'This demo conversation has reached 20 turns. Start a new conversation.')
+        try:
+            profile, introduction = ai.respond(body.message, profile, history,
+                                               body.selected_vehicle.model_dump() if body.selected_vehicle else None)
+        except LLMUnavailable as exc:
+            raise HTTPException(503, str(exc)) from None
+        # No database write lock is held during the external model request.
+        response, qualified = render_reply(profile, introduction, SHOP, f'/book/{cid}')
+        now = datetime.now(timezone.utc).isoformat()
+        with connect() as db:
+            db.execute('BEGIN IMMEDIATE')
+            count = db.execute('SELECT COUNT(*) FROM messages WHERE conversation_id=?', (cid,)).fetchone()[0]
+            if count != len(history):
+                raise HTTPException(409, 'Another message arrived first. Please send your message again.')
+            if body.conversation_id:
+                db.execute('UPDATE conversations SET profile=? WHERE id=?', (json.dumps(profile), cid))
+            else:
+                db.execute('INSERT INTO conversations VALUES (?,?,?)', (cid, json.dumps(profile), now))
+            db.executemany('INSERT INTO messages (conversation_id,role,content,created_at) VALUES (?,?,?,?)',
+                           [(cid, 'user', body.message, now), (cid, 'assistant', response, now)])
+        return {'conversation_id': cid, 'reply': response, 'profile': profile, 'qualified': qualified,
+                'booking_url': f'/book/{cid}', 'mode': 'openai'}
+
     @app.post('/leads')
     def lead(body: LeadInput):
         selection = body.selected_vehicle
@@ -85,6 +127,8 @@ def create_app(db_path=None):
                 raise HTTPException(422, 'Unknown selected brand or vehicle type')
             if selection.model and selection.model not in MODELS[selection.brand]:
                 raise HTTPException(422, 'Model does not belong to selected brand')
+        if uses_llm():
+            return llm_lead(body)
         now = datetime.now(timezone.utc).isoformat()
         cid = body.conversation_id or str(uuid4())
         with connect() as db:
