@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pricing · Desert Shine</title>
+  <meta name="description" content="Explore Desert Shine detailing pricing by service, vehicle type, and brand for a simple, transparent estimate." />
+  <style>
+    :root {
+      --ink: #10211f;
+      --muted: #64736f;
+      --cream: #f7f4ee;
+      --card: #fff;
+      --green: #173f38;
+      --mint: #b8ddc9;
+      --orange: #e77b42;
+      --line: #e5e8e2;
+      --shadow: 0 18px 55px rgba(16, 33, 31, 0.12);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, "Segoe UI", sans-serif;
+      background: linear-gradient(180deg, #f3efe8 0%, #f7f4ee 100%);
+      color: var(--ink);
+      line-height: 1.55;
+    }
+    a { color: inherit; text-decoration: none; }
+    .wrap { width: min(1180px, calc(100% - 32px)); margin: 0 auto; }
+    .topbar {
+      background: var(--green); color: #edf4ef; font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase;
+      text-align: center; padding: 10px 16px; font-weight: 600;
+    }
+    .nav {
+      display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 22px 0; background: rgba(247, 244, 238, 0.94);
+      position: sticky; top: 0; z-index: 10; backdrop-filter: blur(6px);
+    }
+    .logo {
+      font-size: 1.1rem; letter-spacing: 0.18em; font-weight: 800;
+    }
+    .nav-links {
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 20px; color: var(--muted);
+      font-size: 0.94rem; font-weight: 600;
+    }
+    .nav-links a:hover { color: var(--green); }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; border-radius: 999px; padding: 14px 22px; font-weight: 700;
+      background: var(--green); color: white; box-shadow: var(--shadow); border: 1px solid transparent; cursor: pointer;
+    }
+    .btn-light {
+      display: inline-flex; align-items: center; justify-content: center; border-radius: 999px; padding: 14px 22px; font-weight: 700;
+      background: rgba(23, 63, 56, 0.08); color: var(--green); border: 1px solid rgba(23, 63, 56, 0.14);
+    }
+    .hero {
+      padding: 60px 0 28px;
+    }
+    .eyebrow, .kicker {
+      display: inline-block; letter-spacing: 0.12em; text-transform: uppercase; color: var(--green);
+      font-size: 0.75rem; font-weight: 800;
+    }
+    h1, h2, h3 { margin: 0 0 0.6em; line-height: 1.08; }
+    h1 { font-size: clamp(2.5rem, 5vw, 4rem); letter-spacing: -0.06em; }
+    h2 { font-size: clamp(1.8rem, 3vw, 2.8rem); letter-spacing: -0.05em; }
+    p { margin: 0 0 1.1rem; color: var(--muted); }
+    .pricing-shell {
+      display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 24px; align-items: start;
+    }
+    .card {
+      background: var(--card); border: 1px solid var(--line); border-radius: 24px; padding: 26px; box-shadow: 0 10px 30px rgba(16, 33, 31, 0.03);
+    }
+    .control-grid {
+      display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px;
+    }
+    label {
+      display: block; margin-bottom: 8px; font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--green); font-weight: 800;
+    }
+    select, input {
+      width: 100%; border: 1px solid rgba(16, 33, 31, 0.15); background: #fff; border-radius: 12px; padding: 12px 14px; font: inherit; color: var(--ink);
+    }
+    .quote-box {
+      border-radius: 24px; background: linear-gradient(135deg, #173f38 0%, #204d47 100%); color: white; padding: 26px;
+      box-shadow: var(--shadow);
+    }
+    .quote-box p, .quote-box li { color: rgba(255,255,255,0.82); }
+    .quote-box h3 { color: white; }
+    .price-total {
+      font-size: clamp(2.4rem, 5vw, 3.3rem); letter-spacing: -0.06em; font-weight: 800; margin: 10px 0 18px;
+    }
+    .quote-list {
+      list-style: none; padding: 0; margin: 20px 0 0; display: grid; gap: 10px;
+    }
+    .quote-list li:before { content: "•"; margin-right: 8px; }
+    .table-wrap {
+      margin-top: 28px; overflow: auto; border-radius: 20px; border: 1px solid var(--line); background: var(--card);
+    }
+    table {
+      width: 100%; border-collapse: collapse; min-width: 640px;
+    }
+    th, td {
+      padding: 16px 18px; border-bottom: 1px solid var(--line); text-align: left;
+    }
+    th { background: rgba(184, 221, 201, 0.18); color: var(--green); font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; }
+    td { color: var(--muted); }
+    .footer {
+      background: var(--ink); color: rgba(255,255,255,0.72); padding: 32px 0; margin-top: 40px;
+    }
+    @media (max-width: 920px) {
+      .pricing-shell, .control-grid { grid-template-columns: 1fr; }
+      .nav { display: block; }
+      .nav-links { justify-content: flex-start; margin-top: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">Serving Phoenix with premium mobile detailing · Mon–Sat, 9 AM–5 PM</div>
+  <header class="wrap nav">
+    <a class="logo" href="/">DESERT SHINE</a>
+    <nav class="nav-links" aria-label="Main navigation">
+      <a href="/">Home</a>
+      <a href="/services">Services</a>
+      <a href="/pricing">Pricing</a>
+      <a href="/#results">Results</a>
+      <a href="/#about">About</a>
+    </nav>
+  </header>
+
+  <main class="wrap hero">
+    <section>
+      <span class="eyebrow">Transparent pricing</span>
+      <h1>Simple quotes. Premium results.</h1>
+      <p>Our estimates are built around your vehicle type, service, and finish. Use the explorer below for a quick demo estimate before you book.</p>
+      <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:18px;">
+        <a class="btn" href="/">Start your quote</a>
+        <a class="btn-light" href="/services">See service details</a>
+      </div>
+    </section>
+
+    <section class="pricing-shell" aria-label="Pricing estimator">
+      <div class="card">
+        <div class="section-head" style="margin-bottom: 22px;">
+          <div>
+            <span class="kicker">Estimator</span>
+            <h2 style="font-size: 1.6rem; margin-top: 8px;">Build your estimate</h2>
+          </div>
+        </div>
+        <div class="control-grid">
+          <div>
+            <label for="brand">Brand</label>
+            <select id="brand">
+              <option value="">Choose a brand</option>
+            </select>
+          </div>
+          <div>
+            <label for="vehicle">Vehicle type</label>
+            <select id="vehicle">
+              <option value="sedan">Sedan / coupe / hatchback</option>
+              <option value="wagon">Wagon</option>
+              <option value="crossover">Crossover</option>
+              <option value="suv">SUV</option>
+              <option value="truck">Truck</option>
+              <option value="van">Van</option>
+              <option value="minivan">Minivan</option>
+            </select>
+          </div>
+          <div style="grid-column: 1 / -1;">
+            <label for="service">Service</label>
+            <select id="service">
+              <option value="interior">Interior detail</option>
+              <option value="exterior">Exterior detail</option>
+              <option value="full">Full detail</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="quote-box" aria-live="polite">
+        <span class="kicker" style="color: rgba(255,255,255,0.75);">Estimate</span>
+        <h3>Your projected price</h3>
+        <div id="total" class="price-total">$0</div>
+        <p id="summary">Select a brand and service to estimate your finish.</p>
+        <ul class="quote-list" id="quoteBreakdown">
+          <li>Base package pricing</li>
+          <li>Vehicle and brand adjustments</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <span class="kicker">Demo rate card</span>
+          <h2>Typical starting points.</h2>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Vehicle type</th>
+              <th>Interior</th>
+              <th>Exterior</th>
+              <th>Full</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Coupe / sedan / hatchback</td><td>$149</td><td>$89</td><td>$219</td></tr>
+            <tr><td>Wagon</td><td>$164</td><td>$99</td><td>$239</td></tr>
+            <tr><td>Crossover</td><td>$169</td><td>$99</td><td>$244</td></tr>
+            <tr><td>SUV</td><td>$184</td><td>$109</td><td>$264</td></tr>
+            <tr><td>Truck</td><td>$174</td><td>$114</td><td>$259</td></tr>
+            <tr><td>Van</td><td>$199</td><td>$119</td><td>$284</td></tr>
+            <tr><td>Minivan</td><td>$194</td><td>$114</td><td>$279</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap">DESERT SHINE / LOCAL PROTOTYPE · No live payments or appointments</div>
+  </footer>
+
+  <script>
+    const brandSelect = document.getElementById('brand');
+    const vehicleSelect = document.getElementById('vehicle');
+    const serviceSelect = document.getElementById('service');
+    const totalEl = document.getElementById('total');
+    const summaryEl = document.getElementById('summary');
+    const breakdownEl = document.getElementById('quoteBreakdown');
+
+    const basePricing = {
+      interior: { sedan: 149, wagon: 164, crossover: 169, suv: 184, truck: 174, van: 199, minivan: 194 },
+      exterior: { sedan: 89, wagon: 99, crossover: 99, suv: 109, truck: 114, van: 119, minivan: 114 },
+      full: { sedan: 219, wagon: 239, crossover: 244, suv: 264, truck: 259, van: 284, minivan: 279 }
+    };
+
+    const brandAdjustments = {
+      standard: { interior: 0, exterior: 0, full: 0 },
+      premium: { interior: 20, exterior: 15, full: 30 },
+      specialty: { interior: 40, exterior: 30, full: 60 }
+    };
+
+    const brands = {
+      Toyota: 'standard',
+      Honda: 'standard',
+      Ford: 'standard',
+      Chevrolet: 'standard',
+      Nissan: 'standard',
+      BMW: 'premium',
+      Mercedes: 'premium',
+      Audi: 'premium',
+      Porsche: 'specialty',
+      Tesla: 'premium',
+      Lexus: 'premium',
+      Acura: 'premium'
+    };
+
+    function populateBrands() {
+      Object.keys(brands).forEach((brand) => {
+        const option = document.createElement('option');
+        option.value = brand;
+        option.textContent = brand;
+        brandSelect.appendChild(option);
+      });
+    }
+
+    function calculatePrice() {
+      const brand = brandSelect.value || 'Toyota';
+      const service = serviceSelect.value;
+      const vehicle = vehicleSelect.value;
+      const base = basePricing[service][vehicle];
+      const adjustment = brandAdjustments[brands[brand] || 'standard'][service];
+      const total = base + adjustment;
+      const typeLabel = vehicle.replace(/(^\w|-\w)/g, (m) => m.toUpperCase());
+
+      totalEl.textContent = `$${total}`;
+      summaryEl.textContent = `${brand} ${typeLabel} · ${service} detail`;
+      breakdownEl.innerHTML = `
+        <li>Base: $${base}</li>
+        <li>Brand adjustment: $${adjustment}</li>
+        <li>Estimated total: $${total}</li>
+      `;
+    }
+
+    populateBrands();
+    brandSelect.value = 'Toyota';
+    [brandSelect, vehicleSelect, serviceSelect].forEach((control) => control.addEventListener('change', calculatePrice));
+    calculatePrice();
+  </script>
+</body>
+</html>
