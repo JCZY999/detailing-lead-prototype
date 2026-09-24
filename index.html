@@ -1,7 +1,7 @@
 <!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Desert Shine · Lead lab</title>
 <style>body{font:17px system-ui;background:#101d24;color:#e8f2ed;max-width:850px;margin:50px auto;padding:24px}h1{font-size:44px;margin:10px 0}p{line-height:1.6;color:#bfcec9}small{color:#7de0b4}article{padding:18px;border:1px solid #3c555e;border-radius:12px;margin:12px 0;white-space:pre-wrap}textarea,input{box-sizing:border-box;width:100%;padding:16px;border-radius:10px;font:inherit}button,a{background:#8bf0be;color:#10241a;border:0;border-radius:8px;padding:12px 18px;font:inherit;cursor:pointer;display:inline-block;margin:12px 6px 12px 0}#status{color:#f5cc84}#booking{display:none}label{display:block;margin:12px 0}</style>
 <small>DESERT SHINE / LOCAL PROTOTYPE</small><h1>Turn an inquiry into a booking.</h1><p>Interior from $149 · Exterior from $89 · Full detail from $219<br>Mon–Sat, 9 AM–5 PM · Phoenix time · Sunday closed</p><p>Conversation simulator. No live AI, SMS, payments, or real appointments.</p>
-<details open><summary>Explore demo pricing by vehicle and brand</summary><p>Fictional prices including tax. Select your vehicle and brand to compare services. Your selection is included with your next message; a brand or vehicle typed in the message takes priority.</p><label for="vehicle-price">Vehicle type</label><select id="vehicle-price"></select><label for="brand-price">Brand</label><select id="brand-price"></select><p id="price-result" aria-live="polite"></p></details>
+<details open><summary>Explore demo pricing by vehicle and brand</summary><p>Fictional prices including tax. Select your vehicle and brand to compare services. Your selection is included with your next message; a brand, listed model, or vehicle type typed in the message takes priority.</p><label for="vehicle-price">Vehicle type</label><select id="vehicle-price"></select><label for="brand-price">Brand</label><select id="brand-price"></select><label for="model-price">Model</label><select id="model-price"></select><p>Representative models, including older vehicles. Model selection sets the demo vehicle type. For other body styles, choose Other / not listed.</p><p id="price-result" aria-live="polite"></p></details>
 <div id="messages" aria-live="polite"></div><form id="chat"><label for="message">Customer message</label><textarea id="message" maxlength="2000" required rows="3">Hi, I want an interior detail this weekend.</textarea><button id="send">Send message</button><button type="button" id="reset">New conversation</button></form><div id="status" role="status"></div><a id="booking" target="_blank" rel="noopener">Open test booking</a>
 <script>
 let pricingData=null;
@@ -9,17 +9,44 @@ let cid=localStorage.getItem('desert-shine-conversation');
 const el=id=>document.getElementById(id);
 function add(role,text){const row=document.createElement('article');row.textContent=(role==='user'?'YOU\n':'DESERT SHINE\n')+text;el('messages').append(row)}
 function link(){el('booking').href='/book/'+cid;el('booking').style.display='inline-block'}
-async function restore(){if(!cid)return;try{const r=await fetch('/conversations/'+cid);if(!r.ok)throw Error('Saved conversation unavailable. Start a new conversation.');const d=await r.json();d.messages.forEach(m=>add(m.role,m.content));link()}catch(e){el('status').textContent=e.message}}
-el('chat').onsubmit=async e=>{e.preventDefault();const typed=el('message').value.trim();if(!typed)return;const message=withVehicle(typed);el('send').disabled=true;el('reset').disabled=true;el('status').textContent='Saving conversation…';try{const r=await fetch('/leads',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message,conversation_id:cid})});const d=await r.json();if(!r.ok)throw Error(JSON.stringify(d.detail));cid=d.conversation_id;localStorage.setItem('desert-shine-conversation',cid);add('user',message);add('assistant',d.reply);if(d.profile.vehicle)el('vehicle-price').value=d.profile.vehicle;if(d.profile.brand&&pricingData.brands[d.profile.brand])el('brand-price').value=d.profile.brand;if(el('brand-price').onchange)el('brand-price').onchange();el('message').value='';el('status').textContent=d.qualified?'Qualified · ready for a test booking':'Saved · qualification in progress';link()}catch(e){el('status').textContent=e.message}finally{el('send').disabled=false;el('reset').disabled=false}};
-el('reset').onclick=()=>{cid=null;localStorage.removeItem('desert-shine-conversation');el('messages').replaceChildren();el('booking').style.display='none';el('status').textContent='New conversation ready.'};restore();
-function withVehicle(message){
-if(!pricingData)return message;
-const hasWord=word=>new RegExp('\\b'+word+'\\b','i').test(message);
-const brands=[...Object.keys(pricingData.brands),'mercedes','benz','vw','chevy','range rover','other brand','unlisted brand','unknown brand'];
-const context=[];
-if(!Object.keys(pricingData.vehicle_adjustments).some(hasWord))context.push(el('vehicle-price').value);
-if(!brands.some(hasWord))context.push(el('brand-price').value);
-return context.length?message+' (Selected vehicle: '+context.join(' ')+'.)':message;
+function models(selected=''){
+  const options=pricingData.models[el('brand-price').value]||{};
+  el('model-price').replaceChildren(new Option('Other / not listed — choose vehicle type',''));
+  for(const name of Object.keys(options))el('model-price').append(new Option(name,name));
+  el('model-price').value=Object.hasOwn(options,selected)?selected:'';
+  if(el('model-price').value)el('vehicle-price').value=options[selected];
+  el('vehicle-price').disabled=Boolean(el('model-price').value);
 }
-async function loadPricing(){try{const r=await fetch('/pricing');if(!r.ok)throw Error('Pricing unavailable');const data=await r.json();pricingData=data;for(const [id,values] of [['vehicle-price',Object.keys(data.vehicle_adjustments)],['brand-price',Object.keys(data.brands).sort()]]){for(const value of values){const option=document.createElement('option');option.value=value;option.textContent=value;el(id).append(option)}}el('vehicle-price').value=localStorage.getItem('detail-vehicle')||'sedan';el('brand-price').value=localStorage.getItem('detail-brand')||'Toyota';function render(){const vehicle=el('vehicle-price').value,brand=el('brand-price').value,tier=data.brands[brand];localStorage.setItem('detail-vehicle',vehicle);localStorage.setItem('detail-brand',brand);el('price-result').textContent=Object.entries(data.base_prices).map(([service,base])=>`${service}: $${base+data.vehicle_adjustments[vehicle][service]+data.brand_adjustments[tier][service]} (base $${base} + vehicle $${data.vehicle_adjustments[vehicle][service]} + brand $${data.brand_adjustments[tier][service]})`).join(' · ')}el('vehicle-price').onchange=render;el('brand-price').onchange=render;render()}catch(e){el('price-result').textContent=e.message}}loadPricing();
+function render(){
+  const vehicle=el('vehicle-price').value,brand=el('brand-price').value,tier=pricingData.brands[brand];
+  localStorage.setItem('detail-vehicle',vehicle);localStorage.setItem('detail-brand',brand);localStorage.setItem('detail-model',el('model-price').value);
+  el('price-result').textContent=Object.entries(pricingData.base_prices).map(([service,base])=>`${service}: $${base+pricingData.vehicle_adjustments[vehicle][service]+pricingData.brand_adjustments[tier][service]} (base $${base} + vehicle $${pricingData.vehicle_adjustments[vehicle][service]} + brand $${pricingData.brand_adjustments[tier][service]})`).join(' · ');
+}
+function sync(profile){
+  if(!pricingData.brands[profile.brand])return;
+  el('brand-price').value=profile.brand;
+  if(profile.vehicle)el('vehicle-price').value=profile.vehicle;
+  models(profile.model||'');render();
+}
+async function restore(){if(!cid)return;try{const r=await fetch('/conversations/'+cid);if(!r.ok)throw Error('Saved conversation unavailable. Start a new conversation.');const d=await r.json();d.messages.forEach(m=>add(m.role,m.content));sync(d.profile);link()}catch(e){el('status').textContent=e.message}}
+el('chat').onsubmit=async e=>{
+  e.preventDefault();const message=el('message').value.trim();if(!message||!pricingData)return;
+  const selected_vehicle={brand:el('brand-price').value,vehicle:el('vehicle-price').value,model:el('model-price').value||null};
+  el('send').disabled=true;el('reset').disabled=true;el('status').textContent='Saving conversation…';
+  try{const r=await fetch('/leads',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message,conversation_id:cid,selected_vehicle})});const d=await r.json();if(!r.ok)throw Error(JSON.stringify(d.detail));cid=d.conversation_id;localStorage.setItem('desert-shine-conversation',cid);add('user',message);add('assistant',d.reply);sync(d.profile);el('message').value='';el('status').textContent=d.qualified?'Qualified · ready for a test booking':'Saved · qualification in progress';link()}catch(e){el('status').textContent=e.message}finally{el('send').disabled=false;el('reset').disabled=false}
+};
+el('reset').onclick=()=>{cid=null;localStorage.removeItem('desert-shine-conversation');el('messages').replaceChildren();el('booking').style.display='none';el('status').textContent='New conversation ready.'};
+async function loadPricing(){
+  el('send').disabled=true;
+  try{const r=await fetch('/pricing');if(!r.ok)throw Error('Pricing unavailable');pricingData=await r.json();
+    for(const [id,values] of [['vehicle-price',Object.keys(pricingData.vehicle_adjustments)],['brand-price',Object.keys(pricingData.brands).sort()]])for(const value of values)el(id).append(new Option(value,value));
+    const brand=localStorage.getItem('detail-brand'),vehicle=localStorage.getItem('detail-vehicle');
+    el('brand-price').value=pricingData.brands[brand]?brand:'Toyota';el('vehicle-price').value=pricingData.vehicle_adjustments[vehicle]?vehicle:'sedan';models(localStorage.getItem('detail-model')||'');render();
+    el('brand-price').onchange=()=>{models();render()};
+    el('model-price').onchange=()=>{const model=el('model-price').value;el('vehicle-price').disabled=Boolean(model);if(model)el('vehicle-price').value=pricingData.models[el('brand-price').value][model];render()};
+    el('vehicle-price').onchange=render;
+    await restore();el('send').disabled=false;
+  }catch(e){el('status').textContent=e.message;el('price-result').textContent='Unable to load pricing. Please refresh.'}
+}
+loadPricing();
 </script></html>

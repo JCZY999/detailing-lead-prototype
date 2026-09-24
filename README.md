@@ -62,5 +62,19 @@ All prices are fictional, tax-inclusive demo data, not market research. `pricing
 
 Standard brands add $0. Premium brands add $20 / $15 / $30 for interior / exterior / full. Specialty brands add $40 / $30 / $60. Example interior totals: Toyota sedan $149; BMW SUV $204; Porsche SUV $224.
 
-Brand is now required for qualification. Say `other brand` for an unlisted make; this requires a manual quote and blocks automated booking. Existing conversations without a brand must provide one before booking. Existing saved bookings retain their original price snapshot. Changing the service, type, or recognized brand recalculates the quote; after booking, the saved booking remains unchanged. Model names alone do not determine vehicle type. The simulator still requires direct affirmative messages and does not handle negation or multiple vehicles.
+Brand is now required for qualification. Say `other brand` for an unlisted make; this requires a manual quote and blocks automated booking. Existing conversations without a brand must provide one before booking. Existing saved bookings retain their original price snapshot. Changing the service, type, or recognized brand recalculates the quote; after booking, the saved booking remains unchanged. Recognized model names within a known brand determine the default vehicle type. The simulator still requires direct affirmative messages and does not handle negation or multiple vehicles.
 
+
+## Car models
+
+The catalog in `car_models.py` contains 108 representative models across all 36 brands, including older vehicles. It is not a complete current-year inventory. Body types are demo shop pricing defaults; choose **Other / not listed** for a different trim/body style and select the type manually. No extra model surcharge is added.
+
+The browser model dropdown filters by brand and fills the vehicle type. Changing brands clears the previous model. Quotes, transcripts, and booking details include the selected model. The API accepts an optional `selected_vehicle` object, for example:
+
+```json
+{"message":"interior Saturday","selected_vehicle":{"brand":"BMW","model":"X5","vehicle":"suv"}}
+```
+
+The server validates the brand/model pair and derives the type from its own catalog. Direct affirmative text such as `Toyota Sienna` takes priority over the dropdown selection. An explicit conflicting type clears the model. Brand-only changes clear a previous model; unlisted models can still be booked by brand and manually selected type. Existing requests without `selected_vehicle` continue to work.
+
+Representative manufacturer references: https://www.toyota.com/all-vehicles/ and https://www.bmwusa.com/vehicles/x-series/x5/bmw-x5.html. This catalog is a demo selection, not a manufacturer-certified database.

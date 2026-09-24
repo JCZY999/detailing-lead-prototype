@@ -1,0 +1,43 @@
+"""Representative model catalog, including older models; not a complete lineup.
+
+Vehicle classes are demo shop pricing defaults, not trim/year specifications.
+For a different body style, choose 'Other / not listed' and set the type manually.
+"""
+MODELS = {
+    'Toyota': {'Camry': 'sedan', 'RAV4': 'suv', 'Sienna': 'minivan'},
+    'Honda': {'Accord': 'sedan', 'CR-V': 'suv', 'Odyssey': 'minivan'},
+    'Ford': {'Mustang Coupe': 'coupe', 'Explorer': 'suv', 'F-150': 'truck'},
+    'Chevrolet': {'Malibu': 'sedan', 'Tahoe': 'suv', 'Silverado 1500': 'truck'},
+    'Nissan': {'Altima': 'sedan', 'Rogue': 'suv', 'Frontier': 'truck'},
+    'Hyundai': {'Elantra': 'sedan', 'Tucson': 'suv', 'Palisade': 'suv'},
+    'Kia': {'K5': 'sedan', 'Sportage': 'suv', 'Carnival': 'minivan'},
+    'Mazda': {'Mazda3 Sedan': 'sedan', 'CX-5': 'suv', 'CX-9': 'suv'},
+    'Subaru': {'Legacy': 'sedan', 'Forester': 'suv', 'Outback': 'wagon'},
+    'Volkswagen': {'Jetta': 'sedan', 'Golf GTI': 'hatchback', 'Atlas': 'suv'},
+    'Jeep': {'Wrangler': 'suv', 'Grand Cherokee': 'suv', 'Gladiator': 'truck'},
+    'Ram': {'1500': 'truck', '2500': 'truck', 'ProMaster': 'van'},
+    'GMC': {'Sierra 1500': 'truck', 'Yukon': 'suv', 'Acadia': 'suv'},
+    'Buick': {'Enclave': 'suv', 'Envision': 'suv', 'Encore GX': 'crossover'},
+    'Mitsubishi': {'Outlander': 'suv', 'Eclipse Cross': 'crossover', 'Mirage': 'hatchback'},
+    'BMW': {'3 Series Sedan': 'sedan', 'X3': 'suv', 'X5': 'suv'},
+    'Mercedes-Benz': {'C-Class Sedan': 'sedan', 'GLC SUV': 'suv', 'Sprinter': 'van'},
+    'Audi': {'A4 Sedan': 'sedan', 'Q5': 'suv', 'Q7': 'suv'},
+    'Lexus': {'ES': 'sedan', 'RX': 'suv', 'GX': 'suv'},
+    'Acura': {'TLX': 'sedan', 'RDX': 'suv', 'MDX': 'suv'},
+    'Infiniti': {'Q50': 'sedan', 'QX60': 'suv', 'QX80': 'suv'},
+    'Genesis': {'G70': 'sedan', 'G80': 'sedan', 'GV80': 'suv'},
+    'Volvo': {'S60': 'sedan', 'V60': 'wagon', 'XC90': 'suv'},
+    'Cadillac': {'CT4': 'sedan', 'CT5': 'sedan', 'Escalade': 'suv'},
+    'Lincoln': {'Corsair': 'suv', 'Aviator': 'suv', 'Navigator': 'suv'},
+    'Tesla': {'Model 3': 'sedan', 'Model Y': 'suv', 'Cybertruck': 'truck'},
+    'Polestar': {'Polestar 2': 'hatchback', 'Polestar 3': 'suv', 'Polestar 4': 'suv'},
+    'Porsche': {'911 Coupe': 'coupe', 'Macan': 'suv', 'Cayenne': 'suv'},
+    'Land Rover': {'Defender': 'suv', 'Discovery': 'suv', 'Range Rover Sport': 'suv'},
+    'Jaguar': {'XE': 'sedan', 'XF Sedan': 'sedan', 'F-PACE': 'suv'},
+    'Maserati': {'Ghibli': 'sedan', 'Levante': 'suv', 'Grecale': 'suv'},
+    'Bentley': {'Flying Spur': 'sedan', 'Continental GT Coupe': 'coupe', 'Bentayga': 'suv'},
+    'Ferrari': {'Roma Coupe': 'coupe', '296 GTB': 'coupe', 'Purosangue': 'suv'},
+    'Lamborghini': {'Huracan Coupe': 'coupe', 'Revuelto': 'coupe', 'Urus': 'suv'},
+    'Aston Martin': {'DB11 Coupe': 'coupe', 'DB12 Coupe': 'coupe', 'DBX': 'suv'},
+    'Rolls-Royce': {'Ghost': 'sedan', 'Phantom': 'sedan', 'Cullinan': 'suv'},
+}

@@ -1,4 +1,5 @@
 """Fictional, tax-inclusive demo prices in USD; not market price data."""
+from car_models import MODELS
 BASE = {'interior': 149, 'exterior': 89, 'full': 219}
 # Interior, exterior, full service surcharges.
 VEHICLES = dict(zip(
@@ -30,4 +31,5 @@ def quote(profile):
 def catalog():
     return {'notice': 'Fictional demo prices, including tax. Not market rates. Unlisted brands require a manual quote.',
             'base_prices': BASE, 'vehicle_adjustments': {k: dict(zip(BASE, v)) for k, v in VEHICLES.items()},
-            'brand_adjustments': {k: dict(zip(BASE, v)) for k, v in TIERS.items()}, 'brands': BRANDS}
+            'brand_adjustments': {k: dict(zip(BASE, v)) for k, v in TIERS.items()},
+            'brands': BRANDS, 'models': MODELS}

@@ -4,6 +4,42 @@ import pytest
 from concurrent.futures import ThreadPoolExecutor
 from fastapi.testclient import TestClient
 from app import create_app
+from car_models import MODELS
+from pricing import BRANDS, VEHICLES
+
+def test_catalog_complete():
+    assert set(MODELS) == set(BRANDS)
+    assert sum(map(len, MODELS.values())) == 108
+    assert all(kind in VEHICLES for models in MODELS.values() for kind in models.values())
+
+def test_selected_model_and_booking(tmp_path):
+    with TestClient(create_app(tmp_path / 'models.db')) as client:
+        selection = {'brand': 'BMW', 'model': 'X5', 'vehicle': 'sedan'}
+        result = client.post('/leads', json={'message': 'interior Saturday', 'selected_vehicle': selection}).json()
+        assert result['profile']['vehicle'] == 'suv'
+        assert result['profile']['model'] == 'X5'
+        assert result['profile']['quote']['total_usd'] == 204
+        assert 'BMW X5' in result['reply']
+        client.post(result['booking_url'], json={'name': 'Model test'})
+        saved = client.get('/conversations/' + result['conversation_id']).json()
+        assert json.loads(saved['booking']['details'])['model'] == 'X5'
+        wrong = {**selection, 'model': 'Camry'}
+        assert client.post('/leads', json={'message': 'hi', 'selected_vehicle': wrong}).status_code == 422
+        corrected = client.post('/leads', json={'message': 'Toyota Sienna interior Saturday', 'selected_vehicle': selection}).json()
+        assert corrected['profile']['brand'] == 'Toyota'
+        assert corrected['profile']['model'] == 'Sienna'
+        assert corrected['profile']['vehicle'] == 'minivan'
+        assert corrected['profile']['quote']['total_usd'] == 194
+        switched = client.post('/leads', json={'message': 'Honda sedan', 'conversation_id': result['conversation_id']}).json()
+        assert 'model' not in switched['profile']
+
+@pytest.mark.parametrize('brand,model,kind', [(brand, model, kind) for brand, models in MODELS.items() for model, kind in models.items()])
+def test_every_model_selection(tmp_path, brand, model, kind):
+    with TestClient(create_app(tmp_path / 'model.db')) as client:
+        result = client.post('/leads', json={'message': 'full Monday', 'selected_vehicle': {'brand': brand, 'model': model, 'vehicle': kind}}).json()
+        assert result['qualified']
+        assert result['profile']['model'] == model
+        assert result['profile']['vehicle'] == kind
 
 def test_end_to_end_and_persistence(tmp_path):
     path = tmp_path / 'test.sqlite3'

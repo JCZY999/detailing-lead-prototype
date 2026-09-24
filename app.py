@@ -11,6 +11,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field, ConfigDict
 from pricing import BASE, VEHICLES, BRANDS, ALIASES, quote, catalog
+from car_models import MODELS
 
 ROOT = Path(__file__).parent
 SHOP = {
@@ -20,10 +21,17 @@ SHOP = {
     'currency': 'USD',
 }
 
+class VehicleSelection(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True, extra='forbid')
+    brand: str = Field(min_length=1, max_length=80)
+    vehicle: str = Field(min_length=1, max_length=40)
+    model: str | None = Field(default=None, max_length=80)
+
 class LeadInput(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True, extra='forbid')
     message: str = Field(min_length=1, max_length=2000)
     conversation_id: str | None = Field(default=None, max_length=64)
+    selected_vehicle: VehicleSelection | None = None
 
 class BookingInput(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True, extra='forbid')
@@ -71,6 +79,12 @@ def create_app(db_path=None):
 
     @app.post('/leads')
     def lead(body: LeadInput):
+        selection = body.selected_vehicle
+        if selection:
+            if selection.brand not in BRANDS or selection.vehicle not in VEHICLES:
+                raise HTTPException(422, 'Unknown selected brand or vehicle type')
+            if selection.model and selection.model not in MODELS[selection.brand]:
+                raise HTTPException(422, 'Model does not belong to selected brand')
         now = datetime.now(timezone.utc).isoformat()
         cid = body.conversation_id or str(uuid4())
         with connect() as db:
@@ -81,6 +95,13 @@ def create_app(db_path=None):
                 profile = {}
                 db.execute('INSERT INTO conversations VALUES (?,?,?)', (cid, '{}', now))
             msg = body.message.lower()
+            if selection:
+                profile.update(brand=selection.brand, vehicle=selection.vehicle)
+                profile.pop('model', None)
+                if selection.model:
+                    profile['model'] = selection.model
+                    profile['vehicle'] = MODELS[selection.brand][selection.model]
+            previous_brand = profile.get('brand')
             # Deliberately small, deterministic simulator; this is not an LLM.
             if re.search(r'\b(full|both)\b', msg):
                 profile['service'] = 'full'
@@ -103,6 +124,20 @@ def create_app(db_path=None):
                     break
             if re.search(r'\b(other brand|unlisted brand|unknown brand)\b', msg):
                 profile['brand'] = 'Other'
+            if profile.get('brand') != previous_brand:
+                profile.pop('model', None)
+            # Match model names only within the selected/known brand. Longer names
+            # take priority; numeric model names require that brand in the message.
+            for model, kind in sorted(MODELS.get(profile.get('brand'), {}).items(), key=lambda item: len(item[0]), reverse=True):
+                if model.isdigit() and not re.search(r'\b' + re.escape(profile['brand']) + r'\b', body.message, re.I):
+                    continue
+                if re.search(r'\b' + re.escape(model) + r'\b', body.message, re.I):
+                    profile.update(model=model, vehicle=kind)
+                    break
+            if vehicle and profile.get('model') and MODELS[profile['brand']][profile['model']] != vehicle.group(1):
+                # An explicit different body type invalidates an earlier model.
+                profile.pop('model', None)
+                profile['vehicle'] = vehicle.group(1)
             if 'weekend' in msg:
                 profile['weekend_requested'] = True
             missing = [key for key in ('service', 'vehicle', 'brand', 'day') if key not in profile]
@@ -114,7 +149,8 @@ def create_app(db_path=None):
             if profile.get('service'):
                 service = profile['service']
                 if price:
-                    parts.append(f"Your {profile['brand']} {profile['vehicle']} {service} detail is ${price['total_usd']} (base ${price['base_usd']} + vehicle ${price['vehicle_adjustment_usd']} + brand ${price['brand_adjustment_usd']}). Fictional demo price, including tax.")
+                    car = ' '.join(filter(None, (profile['brand'], profile.get('model'), profile['vehicle'])))
+                    parts.append(f"Your {car} {service} detail is ${price['total_usd']} (base ${price['base_usd']} + vehicle ${price['vehicle_adjustment_usd']} + brand ${price['brand_adjustment_usd']}). Fictional demo price, including tax.")
                 else:
                     parts.append(f"Our {service} detail starts at ${BASE[service]}; your vehicle type and brand determine the demo quote.")
             else:
