@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Services · Desert Shine</title>
+  <meta name="description" content="Desert Shine Auto Detailing offers interior, exterior, and full detailing packages for Tesla, BMW, Porsche, and everyday drivers in Phoenix." />
+  <style>
+    :root {
+      --ink: #10211f;
+      --muted: #64736f;
+      --cream: #f7f4ee;
+      --card: #fff;
+      --green: #173f38;
+      --mint: #b8ddc9;
+      --orange: #e77b42;
+      --line: #e5e8e2;
+      --shadow: 0 18px 55px rgba(16, 33, 31, 0.12);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Inter, "Segoe UI", sans-serif;
+      background: linear-gradient(180deg, #f3efe8 0%, #f7f4ee 100%);
+      color: var(--ink);
+      line-height: 1.55;
+    }
+    a { color: inherit; text-decoration: none; }
+    img { max-width: 100%; display: block; }
+    .wrap { width: min(1180px, calc(100% - 32px)); margin: 0 auto; }
+    .topbar {
+      background: var(--green); color: #edf4ef; font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase;
+      text-align: center; padding: 10px 16px; font-weight: 600;
+    }
+    .nav {
+      display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 22px 0; background: rgba(247, 244, 238, 0.94);
+      position: sticky; top: 0; z-index: 10; backdrop-filter: blur(6px);
+    }
+    .logo {
+      font-size: 1.1rem; letter-spacing: 0.18em; font-weight: 800;
+    }
+    .nav-links {
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 20px; color: var(--muted);
+      font-size: 0.94rem; font-weight: 600;
+    }
+    .nav-links a:hover { color: var(--green); }
+    .btn, .btn-light {
+      display: inline-flex; align-items: center; justify-content: center; border-radius: 999px; padding: 14px 22px; font-weight: 700;
+      transition: transform 0.2s ease, box-shadow 0.2s ease; border: 1px solid transparent; cursor: pointer;
+    }
+    .btn {
+      background: var(--green); color: white; box-shadow: var(--shadow);
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn-light {
+      background: rgba(23, 63, 56, 0.08); color: var(--green); border-color: rgba(23, 63, 56, 0.14);
+    }
+    .hero {
+      padding: 64px 0 32px; display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 30px; align-items: center;
+    }
+    .eyebrow, .kicker {
+      display: inline-block; letter-spacing: 0.12em; text-transform: uppercase; color: var(--green);
+      font-size: 0.75rem; font-weight: 800;
+    }
+    h1, h2, h3 { margin: 0 0 0.6em; line-height: 1.08; }
+    h1 { font-size: clamp(2.5rem, 5vw, 4.5rem); letter-spacing: -0.06em; }
+    h2 { font-size: clamp(2rem, 3vw, 3rem); letter-spacing: -0.05em; }
+    p { margin: 0 0 1.2rem; color: var(--muted); }
+    .hero-card {
+      background: var(--card); border-radius: 26px; overflow: hidden; box-shadow: var(--shadow); border: 1px solid rgba(16, 33, 31, 0.06);
+    }
+    .hero-image {
+      min-height: 420px; background:
+        linear-gradient(rgba(16, 33, 31, 0.18), rgba(16, 33, 31, 0.2)),
+        url('https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1200&q=80') center/cover no-repeat;
+    }
+    .section { padding: 70px 0; }
+    .section-head {
+      display: flex; justify-content: space-between; align-items: end; gap: 24px; margin-bottom: 26px;
+    }
+    .service-grid {
+      display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px;
+    }
+    .service-card {
+      background: var(--card); border: 1px solid var(--line); border-radius: 22px; padding: 26px; box-shadow: 0 10px 30px rgba(16, 33, 31, 0.03);
+    }
+    .service-card .price {
+      font-size: 2rem; font-weight: 800; letter-spacing: -0.05em; margin: 16px 0 8px; color: var(--green);
+    }
+    .service-card ul {
+      list-style: none; padding: 0; margin: 18px 0 0; display: grid; gap: 10px; color: var(--muted);
+    }
+    .service-card li:before {
+      content: "•"; color: var(--orange); margin-right: 8px;
+    }
+    .features {
+      display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; margin-top: 18px;
+    }
+    .feature-box {
+      background: rgba(184, 221, 201, 0.25); border: 1px solid rgba(23, 63, 56, 0.1); border-radius: 18px; padding: 20px;
+    }
+    .feature-box strong { display: block; margin-bottom: 6px; color: var(--green); }
+    .process {
+      display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px;
+    }
+    .step {
+      background: var(--card); border: 1px solid var(--line); border-radius: 22px; padding: 22px; position: relative;
+    }
+    .step .num {
+      width: 38px; height: 38px; border-radius: 50%; background: var(--green); color: white; display: grid; place-items: center; font-weight: 800; margin-bottom: 18px;
+    }
+    .cta-band {
+      background: linear-gradient(135deg, #173f38 0%, #224d47 100%); border-radius: 28px; padding: 34px; color: white; display: flex; align-items: center; justify-content: space-between; gap: 20px; box-shadow: var(--shadow);
+    }
+    .cta-band p { margin: 0; color: rgba(255,255,255,0.8); }
+    .footer {
+      background: var(--ink); color: rgba(255,255,255,0.72); padding: 32px 0;
+    }
+    @media (max-width: 900px) {
+      .hero, .service-grid, .features, .process, .section-head, .cta-band {
+        grid-template-columns: 1fr; display: grid;
+      }
+      .nav { display: block; }
+      .nav-links { justify-content: flex-start; margin-top: 12px; }
+      .section-head { display: grid; }
+      .cta-band { text-align: left; }
+    }
+    @media (max-width: 600px) {
+      .nav-links { gap: 10px 16px; font-size: 0.82rem; }
+      .hero { padding-top: 32px; }
+      .hero-image { min-height: 280px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">Serving Phoenix with premium mobile detailing · Mon–Sat, 9 AM–5 PM</div>
+  <header class="wrap nav">
+    <a class="logo" href="/">DESERT SHINE</a>
+    <nav class="nav-links" aria-label="Main navigation">
+      <a href="/">Home</a>
+      <a href="/services">Services</a>
+      <a href="/pricing">Pricing</a>
+      <a href="/#results">Results</a>
+      <a href="/#about">About</a>
+    </nav>
+  </header>
+
+  <main id="top" class="wrap">
+    <section class="hero">
+      <div>
+        <span class="eyebrow">Our services</span>
+        <h1>Detailing built for the way you drive.</h1>
+        <p>From quick shine-ups to full restoration, every package is tailored to your vehicle, your routine, and the kind of finish you want to see every day.</p>
+        <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:18px;">
+          <a class="btn" href="/pricing">View pricing</a>
+          <a class="btn-light" href="/">Book a quote</a>
+        </div>
+      </div>
+      <div class="hero-card">
+        <div class="hero-image" role="img" aria-label="Luxury car detail close-up"></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <span class="kicker">Packages</span>
+          <h2>Choose the finish that fits your routine.</h2>
+        </div>
+      </div>
+      <div class="service-grid">
+        <article class="service-card">
+          <span class="kicker">Interior</span>
+          <div class="price">From $149</div>
+          <p>Restore the cabin with a deeper clean, odor control, and a finish that feels premium from the moment you sit down.</p>
+          <ul>
+            <li>Carpet and upholstery clean</li>
+            <li>Interior wipe-down and trim detailing</li>
+            <li>Glass and dashboard refresh</li>
+          </ul>
+        </article>
+
+        <article class="service-card">
+          <span class="kicker">Exterior</span>
+          <div class="price">From $89</div>
+          <p>Bring back depth, gloss, and clarity to your paint, wheels, and trim without the risk of a rushed wash.</p>
+          <ul>
+            <li>Foam wash and wheel treatment</li>
+            <li>Paint decontamination</li>
+            <li>Sealant protection and drying</li>
+          </ul>
+        </article>
+
+        <article class="service-card">
+          <span class="kicker">Full detail</span>
+          <div class="price">From $219</div>
+          <p>Our most complete package for show quality, daily luxury, and anything that needs a reset inside and out.</p>
+          <ul>
+            <li>Interior + exterior care in one visit</li>
+            <li>Trim, glass, and wheel finish</li>
+            <li>Best value for weekly or seasonal upkeep</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <span class="kicker">What’s included</span>
+          <h2>Thoughtful finishes, not just a flashy wash.</h2>
+        </div>
+      </div>
+      <div class="features">
+        <div class="feature-box">
+          <strong>Premium products</strong>
+          pH-balanced soaps and paint-safe care products designed for daily drivers and luxury vehicles alike.
+        </div>
+        <div class="feature-box">
+          <strong>Detail-first process</strong>
+          Real prep work, drying, and finishing details that create a visible difference you can feel.
+        </div>
+        <div class="feature-box">
+          <strong>Mobile convenience</strong>
+          We bring the care to your home, work, or parking spot so your day stays simple.
+        </div>
+        <div class="feature-box">
+          <strong>Vehicle-specific care</strong>
+          From Tesla glass to BMW trim, every finish gets tailored attention based on condition and material.
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <span class="kicker">How it works</span>
+          <h2>Simple steps. Better results.</h2>
+        </div>
+      </div>
+      <div class="process">
+        <div class="step">
+          <div class="num">1</div>
+          <h3>Tell us about your car</h3>
+          <p>Share your make, model, and the condition of your interior or paint so we can quote the right package.</p>
+        </div>
+        <div class="step">
+          <div class="num">2</div>
+          <h3>Pick your package</h3>
+          <p>Choose a service that fits your lifestyle—quick refresh, full care, or a showroom-style reset.</p>
+        </div>
+        <div class="step">
+          <div class="num">3</div>
+          <h3>We handle the details</h3>
+          <p>Every visit is built around thorough prep, careful finishing, and a better look that lasts well beyond the drive home.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="cta-band">
+        <div>
+          <span class="kicker" style="color: rgba(255,255,255,0.75);">Ready to book?</span>
+          <h2 style="color:#fff; margin-top:8px;">Let’s build your perfect detail package.</h2>
+        </div>
+        <a class="btn" href="/">Start your quote</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap">DESERT SHINE / LOCAL PROTOTYPE · No live payments or appointments</div>
+  </footer>
+</body>
+</html>
