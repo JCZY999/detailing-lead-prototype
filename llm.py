@@ -140,5 +140,4 @@ def render_reply(profile, introduction, shop, url):
         parts.append('Would Saturday work?' if profile.get('weekend_requested') else 'Which day works for you?')
     if qualified:
         parts.append(f"You can submit a test booking request for {profile['day'].title()}.")
-    parts.append(f'Test booking link: {url}. This demo does not reserve a real appointment.')
     return ' '.join(parts), qualified

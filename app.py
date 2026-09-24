@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, ConfigDict
 from pricing import BASE, VEHICLES, BRANDS, ALIASES, quote, catalog
 from car_models import MODELS
@@ -40,6 +41,7 @@ class BookingInput(BaseModel):
 
 def create_app(db_path=None, conversation_ai=None):
     app = FastAPI(title='Desert Shine · Lead prototype')
+    app.mount('/static', StaticFiles(directory=ROOT / 'static'), name='static')
     ai = conversation_ai or OpenAIConversation()
 
     def uses_llm():
