@@ -28,6 +28,14 @@
 /* Give section introductions room along the left edge. */
 #services>.section-head,#estimator>.section-head{padding-left:32px;padding-right:24px}
 @media(max-width:800px){#services>.section-head,#estimator>.section-head{padding-left:20px;padding-right:20px}}
+
+/* Crop the source-image borders and keep each pair flush. */
+#results .comparison{gap:0;align-items:stretch}
+#results .comparison figure{aspect-ratio:0.92;position:relative;overflow:hidden}
+#results .comparison img{position:absolute;height:110%;width:110%;max-width:none;object-fit:cover;left:-5%;top:-5%}
+#results .comparison figure:nth-child(2) img{width:114%;left:-9%}
+#results .result-card:nth-child(2) .comparison img,
+#results .result-card:nth-child(4) .comparison img{width:118%;left:-13%}
 </style>
 </head>
 <body>
