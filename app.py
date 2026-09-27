@@ -8,12 +8,13 @@ from uuid import uuid4
 from datetime import datetime, timezone
 
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, ConfigDict
 from pricing import BASE, VEHICLES, BRANDS, ALIASES, quote, catalog
 from car_models import MODELS
 from llm import OpenAIConversation, LLMUnavailable, render_reply
+from chat_widget import widget_config
 
 ROOT = Path(__file__).parent
 SHOP = {
@@ -99,6 +100,10 @@ def create_app(db_path=None, conversation_ai=None):
     @app.get('/shop')
     def shop():
         return {**SHOP, 'pricing': catalog()}
+
+    @app.get('/api/chat-widget/config')
+    def chat_widget_config():
+        return JSONResponse(widget_config(), headers={'Cache-Control': 'no-store'})
 
     @app.get('/status')
     def status():
